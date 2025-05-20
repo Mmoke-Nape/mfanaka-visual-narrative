@@ -1,10 +1,10 @@
-
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '@/components/PageLayout';
 import HeroCarousel from '@/components/HeroCarousel';
 import { cn } from '@/lib/utils';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Quote } from 'lucide-react';
 
 const heroSlides = [
   {
@@ -51,6 +51,24 @@ const achievements = [
   { number: 3, text: "SA Billboards" },
   { number: 5, text: "TV Features" },
   { number: 15, text: "Magazine Features" },
+];
+
+const testimonials = [
+  {
+    quote: "Mfanaka's vision and artistic eye transformed our campaign into something truly extraordinary.",
+    author: "Sarah Johnson",
+    company: "Vogue South Africa, Editor"
+  },
+  {
+    quote: "Working with Mfanaka was a revelation. His ability to capture emotion through light is unparalleled.",
+    author: "David Mokoena",
+    company: "Brand Director, Luxury Fashion House"
+  },
+  {
+    quote: "The images Mfanaka created for our brand have become iconic. His work speaks for itself.",
+    author: "Thandi Nkosi",
+    company: "Creative Director, NKO Designs"
+  }
 ];
 
 const Index: React.FC = () => {
@@ -127,6 +145,28 @@ const Index: React.FC = () => {
                   {item.number}+
                 </div>
                 <div className="text-softgray font-montserrat">{item.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Testimonials Section */}
+      <section className="py-20 bg-richblack">
+        <div className="container mx-auto">
+          <h2 className="text-3xl md:text-4xl font-playfair text-center mb-12">Client Testimonials</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+            {testimonials.map((testimonial, index) => (
+              <div 
+                key={index} 
+                className="bg-charcoal p-8 rounded-sm border border-vibrantred/20 relative staggered-animation"
+              >
+                <Quote className="text-vibrantred w-10 h-10 mb-4 opacity-50" />
+                <p className="text-softgray mb-6 italic font-playfair">"{testimonial.quote}"</p>
+                <div className="mt-auto">
+                  <p className="text-purewhite font-medium">{testimonial.author}</p>
+                  <p className="text-softgray text-sm">{testimonial.company}</p>
+                </div>
               </div>
             ))}
           </div>

@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { Link } from 'react-router-dom';
 
@@ -13,78 +13,81 @@ const achievements = [
 ];
 
 const About: React.FC = () => {
+  const [animatedNumbers, setAnimatedNumbers] = useState<Record<number, number>>({});
+  const countersAnimated = useRef<boolean>(false);
+
   // Animation on scroll
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('animate');
+          
+          // If it's a counter element and we haven't animated yet, trigger counter animation
+          if (entry.target.classList.contains('achievements-section') && !countersAnimated.current) {
+            animateCounters();
+            countersAnimated.current = true;
+          }
         }
       });
     }, { threshold: 0.1 });
     
-    document.querySelectorAll('.staggered-animation').forEach((el) => {
-      observer.observe(el);
-    });
-    
-    const countElements = document.querySelectorAll('.count-number');
-    countElements.forEach(el => {
+    document.querySelectorAll('.staggered-animation, .achievements-section').forEach((el) => {
       observer.observe(el);
     });
     
     return () => {
-      document.querySelectorAll('.staggered-animation, .count-number').forEach((el) => {
+      document.querySelectorAll('.staggered-animation, .achievements-section').forEach((el) => {
         observer.unobserve(el);
       });
     };
   }, []);
 
   // Achievement number animation
-  useEffect(() => {
-    const countElements = document.querySelectorAll('.count-number');
+  const animateCounters = () => {
+    const duration = 2000; // Animation duration in ms
+    const frameDuration = 1000 / 60; // Animation frame duration (60fps)
+    const totalFrames = Math.round(duration / frameDuration);
     
-    const animateCountUp = (el: Element) => {
-      const target = parseInt(el.textContent || '0');
-      const duration = 2000;
-      let start = 0;
-      const startTime = performance.now();
-      
-      const updateCount = (currentTime: number) => {
-        const elapsedTime = currentTime - startTime;
-        if (elapsedTime > duration) {
-          el.textContent = target.toString();
-          return;
-        }
-        
-        const progress = elapsedTime / duration;
-        const currentCount = Math.floor(progress * target);
-        el.textContent = currentCount.toString();
-        requestAnimationFrame(updateCount);
-      };
-      
-      requestAnimationFrame(updateCount);
-    };
+    let frame = 0;
+    const newNumbers: Record<number, number> = {};
     
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          animateCountUp(entry.target);
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.5 });
-    
-    countElements.forEach(el => {
-      el.textContent = '0';
-      observer.observe(el);
+    // Initialize all counters to 0
+    achievements.forEach((achievement, index) => {
+      newNumbers[index] = 0;
     });
+    setAnimatedNumbers(newNumbers);
     
-    return () => {
-      countElements.forEach(el => {
-        observer.unobserve(el);
+    // Animation loop
+    const counter = setInterval(() => {
+      frame++;
+      
+      // Calculate progress for this frame
+      const progress = frame / totalFrames;
+      
+      // Update each counter
+      const updatedNumbers = {...newNumbers};
+      achievements.forEach((achievement, index) => {
+        // Calculate current value based on progress
+        updatedNumbers[index] = Math.floor(progress * achievement.number);
+        
+        // If we've reached the target, set it exactly
+        if (frame === totalFrames) {
+          updatedNumbers[index] = achievement.number;
+        }
       });
-    };
-  }, []);
+      
+      setAnimatedNumbers(updatedNumbers);
+      
+      // If we've reached the end of the animation, stop
+      if (frame === totalFrames) {
+        clearInterval(counter);
+      }
+    }, frameDuration);
+    
+    // Cleanup function
+    return () => clearInterval(counter);
+  };
 
   return (
     <PageLayout>
@@ -125,13 +128,18 @@ const About: React.FC = () => {
         </div>
       </section>
       
-      {/* Philosophy */}
+      {/* Philosophy - This is the black box section */}
       <section className="py-16 px-4 bg-charcoal">
         <div className="container mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-playfair mb-6">Philosophy</h2>
-          <p className="text-xl text-softgray italic font-playfair mb-10">
-            "My work is about finding the extraordinary within people. I use light and shadow to reveal character, to celebrate individuality, and to create images that stand the test of time."
-          </p>
+          <div className="bg-richblack p-8 rounded-sm mb-8">
+            <p className="text-xl text-purewhite italic font-playfair mb-6">
+              "My work is about finding the extraordinary within people. I use light and shadow to reveal character, to celebrate individuality, and to create images that stand the test of time."
+            </p>
+            <p className="text-softgray">
+              — Mfanaka Ka Maluleke
+            </p>
+          </div>
           <p className="text-softgray">
             Every photoshoot is approached as a creative collaboration, with meticulous attention to detail from concept development through to the final image. Mfanaka's work combines technical excellence with artistic vision, creating photographs that are both commercially impactful and artistically significant.
           </p>
@@ -139,14 +147,14 @@ const About: React.FC = () => {
       </section>
       
       {/* Achievements */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 achievements-section">
         <div className="container mx-auto max-w-4xl">
           <h2 className="text-3xl font-playfair text-center mb-12">Achievements</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-center">
             {achievements.map((item, index) => (
               <div key={index} className="py-4">
                 <div className="text-4xl md:text-5xl font-playfair font-bold text-vibrantred mb-2">
-                  <span className="count-number">{item.number}</span>+
+                  {(animatedNumbers[index] !== undefined ? animatedNumbers[index] : 0)}+
                 </div>
                 <div className="text-softgray font-montserrat">{item.text}</div>
               </div>

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import PageLayout from '@/components/PageLayout';
 import HeroCarousel from '@/components/HeroCarousel';
 import { cn } from '@/lib/utils';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 const heroSlides = [
   {
@@ -90,11 +91,13 @@ const Index: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 staggered-animation">
             {featuredWorks.map((work) => (
               <div key={work.id} className="image-hover rounded-sm overflow-hidden">
-                <img 
-                  src={work.image} 
-                  alt={work.title}
-                  className="w-full aspect-[3/4] object-cover"
-                />
+                <AspectRatio ratio={3/4}>
+                  <img 
+                    src={work.image} 
+                    alt={work.title}
+                    className="w-full h-full object-cover"
+                  />
+                </AspectRatio>
                 <div className="overlay">
                   <h3 className="text-xl font-playfair">{work.title}</h3>
                   <p className="text-softgray text-sm">{work.category}</p>

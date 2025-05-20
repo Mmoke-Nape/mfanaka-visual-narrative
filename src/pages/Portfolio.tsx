@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { cn } from '@/lib/utils';
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 // Portfolio data
 const portfolioItems = [
@@ -90,14 +91,26 @@ const Portfolio: React.FC = () => {
     // Simple masonry layout with resizing
     const resizeMasonryItem = (item: HTMLElement) => {
       const grid = masonryRef.current;
-      const rowGap = parseInt(window.getComputedStyle(grid!).getPropertyValue('grid-row-gap'));
-      const rowHeight = parseInt(window.getComputedStyle(grid!).getPropertyValue('grid-auto-rows'));
+      if (!grid) return;
       
-      const img = item.querySelector('img');
-      if (img && img.complete) {
-        const itemHeight = img.getBoundingClientRect().height;
-        const rowSpan = Math.ceil((itemHeight + rowGap) / (rowHeight + rowGap));
-        item.style.gridRowEnd = `span ${rowSpan}`;
+      const rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-row-gap'));
+      const rowHeight = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-auto-rows'));
+      
+      const imgElement = item.querySelector('img');
+      if (imgElement) {
+        // Check if image is loaded before calculating height
+        if ((imgElement as HTMLImageElement).complete) {
+          const itemHeight = imgElement.getBoundingClientRect().height;
+          const rowSpan = Math.ceil((itemHeight + rowGap) / (rowHeight + rowGap));
+          item.style.gridRowEnd = `span ${rowSpan}`;
+        } else {
+          // If not loaded, add event listener
+          imgElement.addEventListener('load', () => {
+            const itemHeight = imgElement.getBoundingClientRect().height;
+            const rowSpan = Math.ceil((itemHeight + rowGap) / (rowHeight + rowGap));
+            item.style.gridRowEnd = `span ${rowSpan}`;
+          });
+        }
       }
     };
     
@@ -111,18 +124,6 @@ const Portfolio: React.FC = () => {
     // Initial load and resize handling
     resizeAllMasonryItems();
     window.addEventListener('resize', resizeAllMasonryItems);
-    
-    // Handle image load events
-    const imgElements = document.querySelectorAll('.masonry-item img');
-    imgElements.forEach(img => {
-      if (img.complete) {
-        resizeMasonryItem(img.parentElement as HTMLElement);
-      } else {
-        img.addEventListener('load', () => {
-          resizeMasonryItem(img.parentElement as HTMLElement);
-        });
-      }
-    });
     
     return () => {
       window.removeEventListener('resize', resizeAllMasonryItems);
@@ -169,19 +170,22 @@ const Portfolio: React.FC = () => {
           {/* Masonry Grid */}
           <div 
             ref={masonryRef}
-            className="masonry-grid"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {filteredItems.map((item) => (
               <div 
                 key={item.id} 
-                className="masonry-item image-hover cursor-pointer"
+                className="image-hover cursor-pointer overflow-hidden"
                 onClick={() => openLightbox(item)}
               >
-                <img 
-                  src={item.image} 
-                  alt={item.title} 
-                  className="w-full h-auto"
-                />
+                <AspectRatio ratio={3/4} className="bg-charcoal">
+                  <img 
+                    src={item.image} 
+                    alt={item.title} 
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </AspectRatio>
                 <div className="overlay">
                   <h3 className="text-xl font-playfair">{item.title}</h3>
                   <p className="text-softgray text-sm">{item.category}</p>
